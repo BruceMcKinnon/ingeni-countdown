@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Ingeni Countdown Timer
-Version: 2023.01
+Version: 2023.02
 Plugin URI: https://ingeni.net
 Author: Bruce McKinnon - ingeni.net
 Author URI: http://ingeni.net
@@ -26,18 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 v2023.01 - 29 May 2023 - Initial release. Based on https://codepen.io/AllThingsSmitty/pen/JJavZN
+v2023.02 - 29 May 2023 - Added default css
 */
 
-/*
-if ( !function_exists("is_local") ) {
-	function is_local() {
-		$local_install = false;
-		if ( ($_SERVER['SERVER_NAME']=='localhost') ) {
-			$local_install = true;
-		}
-		return $local_install;
-	}
-}
 
 if (!function_exists("fb_log")) {
 	function fb_log($msg) {
@@ -61,13 +52,15 @@ if (!function_exists("fb_log")) {
 		}
 	}	
 }
-*/
+
 
 //
 //
 // Enqueue our stylesheet and javascript file
 //
 function ingeni_countdown_enqueue() {
+	wp_register_style( 'countdown_css', plugins_url('ingeni-countdown.css', __FILE__) );
+
 	wp_register_script( 'countdown_js', plugins_url('ingeni-countdown.js', __FILE__), false, 0, true );
 	wp_enqueue_script( 'countdown_js' );
 }
@@ -83,14 +76,10 @@ add_shortcode( "ingeni-countdown-timer", "ingeni_countdown_timer" );
 function ingeni_countdown_timer( $atts ) {
 	$retHtml = '';
 
-	try {
-		// Get the WP timezone and set the local timezone to that
-		$tz = wp_timezone();
-		$tz_name = timezone_name_get($tz);
-		date_default_timezone_set( $tz_name );
-	} catch (Exception $e) {
-		fb_log('Invalid timzone' );
-	}
+	// Get the current timezone offset
+	$wp_tz_str = wp_timezone_string();
+	$time_obj = new DateTime('now', new DateTimeZone($wp_tz_str));
+	$timezoneOffset = $time_obj->format('P');
 
 	$default_date = strtotime("+7 day");
 
@@ -104,6 +93,7 @@ function ingeni_countdown_timer( $atts ) {
 		'class' => 'ingeni_countdown_timer',
 		), $atts );
 
+
 	$now = date("Y-m-d H:i:s");
 	$countdown_to = date_create($now);
 	date_add( $countdown_to, date_interval_create_from_date_string("7 days") );
@@ -111,13 +101,17 @@ function ingeni_countdown_timer( $atts ) {
 		$target_str = $params['target_date'].'T'.$params['target_time'];
 		$target_time = strtotime($target_str);
 		$countdown_to = date("Y-m-d H:i:s", $target_time);
+//$retHtml .= '<p>tz:'.date_default_timezone_get().'<p>';
+//$retHtml .= '<p>'.$countdown_to.'<p>';
+
 	} catch (Exception $e) {
 		fb_log('Invalid date format: '.$params['target_date'].'T'.$params['target_time'] );
 	}
 
+	//$retHtml .= '<p>tz:'.date_default_timezone_get().'<p>';
 	 
 	$retHtml .= '<div class="'.$params['class'].'">';
-		$retHtml .= '<div id="ingeni_countdown_target">'.$countdown_to.'</div>';
+		$retHtml .= '<div id="ingeni_countdown_target" style="display:none;">'.$countdown_to.$timezoneOffset.'</div>';
 		$retHtml .= '<div id="ingeni_countdown">';
 			$retHtml .= '<ul>';
 				if ( $params['show_days'] == 1) {

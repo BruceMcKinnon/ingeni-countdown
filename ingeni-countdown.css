@@ -1,0 +1,21 @@
+.ingeni_countdown_timer ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	text-align: left;
+	margin: 30px 0;
+}
+
+.ingeni_countdown_timer ul li {
+	display: inline-block;
+	font-size: 16px;
+	text-align: center;
+	font-weight: bold;
+	margin: 0 15px;
+}
+.ingeni_countdown_timer ul li span {
+	display: block;
+	font-size: 24px;
+	text-align: center;
+}
